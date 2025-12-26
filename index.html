@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>SmartStock | Modern Inventory Management</title>
+  <meta name="description" content="Track, manage, and optimize inventory with real-time tools and AI-powered insights." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- Skip link -->
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- NAV -->
+  <header class="site-header" data-header>
+    <nav class="nav" aria-label="Primary">
+      <div class="container nav__inner">
+        <a class="brand" href="index.html" aria-label="SmartStock home">
+          <img class="brand__logo" src="images/logo.png" alt="SmartStock" />
+        </a>
+
+        <div class="nav__links" data-nav-links>
+          <a class="nav__link is-active" href="index.html">Home</a>
+          <a class="nav__link" href="#features">Features</a>
+          <a class="nav__link" href="#pricing">Pricing</a>
+          <a class="nav__link" href="#testimonials">Testimonials</a>
+        </div>
+
+        <div class="nav__actions">
+          <a class="btn btn--ghost" href="login.html">Sign In</a>
+          <a class="btn btn--primary" href="login.html?register=true">Get Started Free</a>
+
+          <button class="icon-btn nav__toggle"
+                  type="button"
+                  aria-label="Open menu"
+                  aria-expanded="false"
+                  aria-controls="mobileMenu"
+                  data-nav-toggle>
+            <i class="fa-solid fa-bars" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Mobile menu -->
+    <div class="mobile-menu" id="mobileMenu" data-mobile-menu hidden>
+      <div class="container mobile-menu__inner">
+        <a class="mobile-menu__link" href="index.html">Home</a>
+        <a class="mobile-menu__link" href="#features">Features</a>
+        <a class="mobile-menu__link" href="#pricing">Pricing</a>
+        <a class="mobile-menu__link" href="#testimonials">Testimonials</a>
+
+        <div class="mobile-menu__cta">
+          <a class="btn btn--ghost w-100" href="login.html">Sign In</a>
+          <a class="btn btn--primary w-100" href="login.html?register=true">Get Started Free</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main id="main">
+    <!-- HERO -->
+    <section class="hero" aria-label="Hero">
+      <div class="hero__bg" aria-hidden="true"></div>
+
+      <div class="container hero__inner">
+        <div class="hero__copy">
+          <div class="pill" data-animate>
+            <span class="pill__sparkle">✨</span>
+            <span>TRUSTED BY 500+ BUSINESSES</span>
+          </div>
+
+          <h1 class="hero__title" data-animate>
+            Inventory Management<br />
+            <span class="text-gradient">Made Simple</span>
+          </h1>
+
+          <p class="hero__subtitle" data-animate>
+            Track, manage, and optimize your inventory with AI-powered insights.
+            Reduce stockouts by 85% and save 20+ hours every month.
+          </p>
+
+          <div class="hero__cta" data-animate>
+            <a class="btn btn--accent btn--lg" href="login.html?register=true">
+              <i class="fa-solid fa-play-circle" aria-hidden="true"></i>
+              Start Free 14-Day Trial
+            </a>
+
+          </div>
+
+          <div class="hero__stats" data-animate>
+            <div class="stat">
+              <div class="stat__num">24/7</div>
+              <div class="stat__label">Real-time Tracking</div>
+            </div>
+            <div class="stat">
+              <div class="stat__num">99.9%</div>
+              <div class="stat__label">Uptime</div>
+            </div>
+            <div class="stat">
+              <div class="stat__num">5 min</div>
+              <div class="stat__label">Setup Time</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero__visual" data-animate>
+          <div class="mock">
+            <div class="mock__top">
+              <div class="mock__dots" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+              <div class="mock__tabs" role="tablist" aria-label="Dashboard tabs">
+                <button class="mock__tab is-active" type="button" role="tab" aria-selected="true">Dashboard</button>
+                <button class="mock__tab" type="button" role="tab" aria-selected="false">Products</button>
+                <button class="mock__tab" type="button" role="tab" aria-selected="false">Analytics</button>
+              </div>
+            </div>
+
+            <div class="mock__grid">
+              <article class="metric">
+                <div class="metric__icon">
+                  <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>
+                </div>
+                <div class="metric__body">
+                  <div class="metric__value">1,248</div>
+                  <div class="metric__label">Total Products</div>
+                </div>
+              </article>
+
+              <article class="metric">
+                <div class="metric__icon">
+                  <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+                </div>
+                <div class="metric__body">
+                  <div class="metric__value">$12,458</div>
+                  <div class="metric__label">Monthly Sales</div>
+                </div>
+              </article>
+
+              <article class="metric metric--warn">
+                <div class="metric__icon">
+                  <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                </div>
+                <div class="metric__body">
+                  <div class="metric__value">8</div>
+                  <div class="metric__label">Low Stock Items</div>
+                </div>
+              </article>
+
+              <div class="chart">
+                <div class="chart__head">
+                  <div>
+                    <div class="chart__title">Sales Trend</div>
+                    <div class="chart__sub">Last 7 days</div>
+                  </div>
+                  <span class="chip">LIVE</span>
+                </div>
+
+                <div class="chart__bars" aria-hidden="true">
+                  <span style="--h: 38%"></span>
+                  <span style="--h: 62%"></span>
+                  <span style="--h: 55%"></span>
+                  <span style="--h: 75%"></span>
+                  <span style="--h: 48%"></span>
+                  <span style="--h: 82%"></span>
+                  <span style="--h: 66%"></span>
+                </div>
+              </div>
+
+              <div class="list">
+                <div class="list__head">
+                  <div class="list__title">Alerts</div>
+                  <a class="list__link" href="#features">View all</a>
+                </div>
+                <ul class="list__items">
+                  <li>
+                    <span class="dot dot--warn"></span>
+                    <span>Low stock: “Organic Treats”</span>
+                  </li>
+                  <li>
+                    <span class="dot dot--ok"></span>
+                    <span>New shipment received (12 items)</span>
+                  </li>
+                  <li>
+                    <span class="dot dot--info"></span>
+                    <span>Forecast updated for next week</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="glow" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <!-- WAVE (does NOT create layout whitespace) -->
+      <div class="wave" aria-hidden="true">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28
+          c70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05
+          c69.27,18,138.3,24.88,209.4,13.08c36.15-6,69.85-17.84,104.45-29.34
+          C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25"></path>
+          <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05
+          C99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8
+          c40.92-19,84.73-46,130.83-49.67c36.26-2.85,70.9,9.42,98.6,31.56
+          c31.77,25.39,62.32,62,103.63,73c40.44,10.79,81.35-6.69,119.13-24.28
+          s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84
+          c30.2,8.66,59,6.17,87.09-7.5c22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5"></path>
+          <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57
+          c43-7.64,84.23-20.12,127.61-26.46c59-8.63,112.48,12.24,165.56,35.4
+          C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"></path>
+        </svg>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-head">
+          <h2 class="h2" data-animate>Everything you need in one platform</h2>
+          <p class="p" data-animate>Smart features designed to save you time and boost your sales</p>
+        </div>
+
+        <div class="grid features">
+          <article class="feature" data-animate>
+            <div class="feature__icon"><i class="fa-solid fa-robot"></i></div>
+            <div class="feature__tag">NEW</div>
+            <h3 class="feature__title">AI-Powered Predictions</h3>
+            <p class="feature__text">Smart restocking suggestions and forecasts based on your historical trends.</p>
+          </article>
+
+          <article class="feature" data-animate>
+            <div class="feature__icon"><i class="fa-solid fa-arrows-rotate"></i></div>
+            <h3 class="feature__title">Real-time Sync</h3>
+            <p class="feature__text">Automatic updates across devices so your team always sees the latest.</p>
+          </article>
+
+          <article class="feature" data-animate>
+            <div class="feature__icon"><i class="fa-solid fa-chart-pie"></i></div>
+            <h3 class="feature__title">Advanced Analytics</h3>
+            <p class="feature__text">Track profit margins, sales patterns, and turnover with clear reporting.</p>
+          </article>
+
+          <article class="feature" data-animate>
+            <div class="feature__icon"><i class="fa-solid fa-bell"></i></div>
+            <h3 class="feature__title">Smart Alerts</h3>
+            <p class="feature__text">Notifications for low stock, high demand, and price changes.</p>
+          </article>
+
+          <article class="feature" data-animate>
+            <div class="feature__icon"><i class="fa-solid fa-mobile-screen"></i></div>
+            <h3 class="feature__title">Mobile-First Design</h3>
+            <p class="feature__text">Run operations on the go with a fully responsive interface.</p>
+          </article>
+
+          <article class="feature" data-animate>
+            <div class="feature__icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <h3 class="feature__title">Enterprise Security</h3>
+            <p class="feature__text">Role-based access control and strong encryption by default.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRICING -->
+    <section class="section section--alt" id="pricing">
+      <div class="container">
+        <div class="section-head">
+          <h2 class="h2" data-animate>Simple pricing that scales</h2>
+          <p class="p" data-animate>Start free, upgrade when your team is ready.</p>
+        </div>
+
+        <div class="grid pricing">
+          <article class="price" data-animate>
+            <h3 class="price__name">Starter</h3>
+            <div class="price__value">$0</div>
+            <div class="price__sub">For small teams testing the waters</div>
+            <ul class="price__list">
+              <li>Up to 200 products</li>
+              <li>Basic alerts</li>
+              <li>Email support</li>
+            </ul>
+            <a class="btn btn--outline w-100" href="login.html?register=true">Start Free</a>
+          </article>
+
+          <article class="price price--featured" data-animate>
+            <div class="price__badge">Most Popular</div>
+            <h3 class="price__name">Growth</h3>
+            <div class="price__value">$29<span>/mo</span></div>
+            <div class="price__sub">For growing businesses</div>
+            <ul class="price__list">
+              <li>Unlimited products</li>
+              <li>AI predictions</li>
+              <li>Advanced analytics</li>
+              <li>Priority support</li>
+            </ul>
+            <a class="btn btn--primary w-100" href="login.html?register=true">Get Started</a>
+          </article>
+
+          <article class="price" data-animate>
+            <h3 class="price__name">Enterprise</h3>
+            <div class="price__value">Custom</div>
+            <div class="price__sub">For multi-location operations</div>
+            <ul class="price__list">
+              <li>SLA + dedicated success</li>
+              <li>Custom roles & SSO</li>
+              <li>Security reviews</li>
+            </ul>
+            <a class="btn btn--outline w-100" href="#cta">Talk to Sales</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="section" id="testimonials">
+      <div class="container">
+        <div class="section-head">
+          <h2 class="h2" data-animate>Loved by operators</h2>
+          <p class="p" data-animate>Teams save time and reduce stockouts within weeks.</p>
+        </div>
+
+        <div class="grid testimonials">
+          <article class="quote" data-animate>
+            <div class="quote__stars" aria-hidden="true">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+            <p class="quote__text">“We cut stockouts drastically. The alerts and forecasting are spot-on.”</p>
+            <div class="quote__who">
+              <div class="avatar" aria-hidden="true">A</div>
+              <div>
+                <div class="quote__name">Amina R.</div>
+                <div class="quote__role">Retail Ops</div>
+              </div>
+            </div>
+          </article>
+
+          <article class="quote" data-animate>
+            <div class="quote__stars" aria-hidden="true">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+            <p class="quote__text">“Setup was insanely fast, and the dashboard is clean and easy for staff.”</p>
+            <div class="quote__who">
+              <div class="avatar" aria-hidden="true">J</div>
+              <div>
+                <div class="quote__name">Jamil H.</div>
+                <div class="quote__role">Warehouse Manager</div>
+              </div>
+            </div>
+          </article>
+
+          <article class="quote" data-animate>
+            <div class="quote__stars" aria-hidden="true">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+            <p class="quote__text">“The analytics helped us identify slow movers and recover margin.”</p>
+            <div class="quote__who">
+              <div class="avatar" aria-hidden="true">S</div>
+              <div>
+                <div class="quote__name">Sabrina K.</div>
+                <div class="quote__role">Founder</div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section section--cta" id="cta">
+      <div class="container">
+        <div class="cta" data-animate>
+          <div class="cta__left">
+            <h2 class="cta__title">Ready to transform your inventory management?</h2>
+            <p class="cta__sub">Join 500+ businesses that trust SmartStock</p>
+
+            <form class="cta__form" data-cta-form>
+              <label class="sr-only" for="email">Email address</label>
+              <input id="email" class="input" type="email" placeholder="Enter your business email" required />
+              <button class="btn btn--light" type="submit">Start Free Trial</button>
+            </form>
+
+            <div class="cta__note">No credit card required • 14-day free trial • Cancel anytime</div>
+          </div>
+
+          <div class="cta__right" aria-hidden="true">
+            <div class="cta-badge">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>Set up in 5 minutes</span>
+            </div>
+            <div class="cta-mini">
+              <div class="cta-mini__row"><span class="dot dot--ok"></span> Live stock sync</div>
+              <div class="cta-mini__row"><span class="dot dot--info"></span> AI forecasts</div>
+              <div class="cta-mini__row"><span class="dot dot--warn"></span> Smart alerts</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <img src="images/logo.png" class="footer__logo" alt="SmartStock" />
+        <p class="footer__tag">Modern inventory management for growing businesses</p>
+
+        <div class="footer__social" aria-label="Social links">
+          <a class="social" href="#" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
+          <a class="social" href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+          <a class="social" href="#" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+          <a class="social" href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+        </div>
+      </div>
+
+      <div class="footer__cols">
+        <div class="footer__col">
+          <h4>Product</h4>
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#demo">Demo</a>
+          <a href="#">Documentation</a>
+        </div>
+
+        <div class="footer__col">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Careers</a>
+          <a href="#">Blog</a>
+          <a href="#">Press</a>
+        </div>
+
+        <div class="footer__col">
+          <h4>Resources</h4>
+          <a href="#">Help Center</a>
+          <a href="#">Contact</a>
+          <a href="#">Status</a>
+          <a href="#">Partners</a>
+        </div>
+
+        <div class="footer__col">
+          <h4>Legal</h4>
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Security</a>
+          <a href="#">Cookies</a>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <p>© 2024 SmartStock. All rights reserved.</p>
+        <a class="footer__lang" href="#"><i class="fa-solid fa-globe"></i> English</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>

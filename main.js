@@ -96,3 +96,15 @@
     });
   }
 })();
+// ---------- Auth Guard ----------
+(function authGuard() {
+  const protectedPages = ["dashboard.html", "products.html", "transactions.html"];
+  const currentPage = window.location.pathname.split("/").pop();
+
+  if (protectedPages.includes(currentPage)) {
+    const isLoggedIn = localStorage.getItem("smartstock_logged_in");
+    if (!isLoggedIn) {
+      window.location.href = "login.html";
+    }
+  }
+})();

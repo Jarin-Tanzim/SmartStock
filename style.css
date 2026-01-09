@@ -1060,3 +1060,40 @@ button, input { font: inherit; }
   .metric{ grid-column: span 12; }
   .wave{ height: 58px; }
 }
+/* Login / Register  */
+.auth-card {
+  background: #ffffff;
+  border-radius: var(--r-xl);
+  padding: 36px 32px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--gray-200);
+}
+
+.auth-card label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--gray-700);
+}
+
+.auth-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--r);
+  border: 2px solid var(--gray-300);
+  background: var(--gray-050);
+  color: var(--gray-800);
+  font-weight: 600;
+  outline: none;
+  transition: border-color var(--t), box-shadow var(--t);
+}
+
+.auth-input::placeholder {
+  color: var(--gray-400);
+}
+
+.auth-input:focus {
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(31, 95, 166, 0.12);
+}

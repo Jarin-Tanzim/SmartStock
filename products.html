@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Products | SmartStock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+ 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
+
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+ 
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+
+<script>
+  const token = localStorage.getItem("smartstock_token");
+  if (!token) {
+    window.location.href = "login.html";
+  }
+</script>
+
+
+<header class="site-header">
+  <nav class="nav">
+    <div class="container nav__inner">
+      <strong>SmartStock</strong>
+
+      <div class="nav__links">
+        <a class="nav__link" href="dashboard.html">Dashboard</a>
+        <a class="nav__link is-active" href="products.html">Products</a>
+        <a class="nav__link" href="add-product.html">Add Product</a>
+        <a class="nav__link" href="billing.html">Billing</a>
+      </div>
+
+      <button class="btn btn--ghost" id="logoutBtn">Logout</button>
+    </div>
+  </nav>
+</header>
+
+
+<main class="section">
+  <div class="container">
+
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+      <div>
+        <h2 class="h2">Products</h2>
+        <p class="p">Manage your inventory</p>
+      </div>
+
+      <a href="add-product.html" class="btn btn--primary">
+        + Add Product
+      </a>
+    </div>
+
+   
+    <div style="margin-top:32px; background:#fff; border:1px solid var(--gray-200); border-radius:18px; overflow:hidden;">
+      <table style="width:100%; border-collapse:collapse;">
+        <thead style="background:var(--gray-050);">
+          <tr>
+            <th style="padding:14px; text-align:left;">Name</th>
+            <th style="padding:14px; text-align:right;">Price</th>
+            <th style="padding:14px; text-align:center;">Quantity</th>
+            <th style="padding:14px; text-align:center;">Status</th>
+            <th style="padding:14px; text-align:center;">Action</th>
+          </tr>
+        </thead>
+
+        <tbody id="productsTable">
+          <tr>
+            <td colspan="5" style="padding:32px; text-align:center; color:var(--gray-500); font-weight:600;">
+              Loading products…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</main>
+
+
+<script>
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.removeItem("smartstock_token");
+    localStorage.removeItem("smartstock_user");
+    window.location.href = "login.html";
+  });
+</script>
+
+
+<script>
+fetch("http://localhost:5000/api/products", {
+  headers: {
+    "Authorization": "Bearer " + token
+  }
+})
+.then(res => {
+  if (!res.ok) throw new Error("Failed to fetch products");
+  return res.json();
+})
+.then(products => {
+  const table = document.getElementById("productsTable");
+  table.innerHTML = "";
+
+  if (products.length === 0) {
+    table.innerHTML = `
+      <tr>
+        <td colspan="5" style="padding:32px; text-align:center; color:var(--gray-500); font-weight:600;">
+          No products found. Add your first product to get started.
+        </td>
+      </tr>`;
+    return;
+  }
+
+  products.forEach(p => {
+    const isLow = p.quantity <= p.low_stock_limit;
+    const status = isLow
+      ? `<span style="color:#F59E0B; font-weight:700;">Low Stock</span>`
+      : `<span style="color:#22C55E; font-weight:700;">In Stock</span>`;
+
+    table.innerHTML += `
+      <tr style="border-top:1px solid var(--gray-200);">
+        <td style="padding:14px; font-weight:700;">${p.name}</td>
+        <td style="padding:14px; text-align:right;">$${Number(p.price).toFixed(2)}</td>
+        <td style="padding:14px; text-align:center;">${p.quantity}</td>
+        <td style="padding:14px; text-align:center;">${status}</td>
+        <td style="padding:14px; text-align:center;">
+          <button class="btn btn--ghost" onclick="sellProduct(${p.id})">
+            Sell
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+})
+.catch(err => {
+  document.getElementById("productsTable").innerHTML = `
+    <tr>
+      <td colspan="5" style="padding:32px; text-align:center; color:#EF4444; font-weight:700;">
+        Error loading products
+      </td>
+    </tr>`;
+  console.error(err);
+});
+</script>
+
+
+<script>
+function sellProduct(productId) {
+  const qty = prompt("Enter quantity sold:");
+
+  if (!qty || isNaN(qty) || qty <= 0) {
+    alert("Invalid quantity");
+    return;
+  }
+
+  fetch("http://localhost:5000/api/sales", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({
+      product_id: productId,
+      quantity: parseInt(qty)
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message);
+    location.reload();
+  })
+  .catch(() => alert("Sale failed"));
+}
+</script>
+
+</body>
+</html>

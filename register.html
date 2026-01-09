@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Register | SmartStock</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <main class="section section--tight">
+  <div class="container" style="max-width: 460px;">
+    <div class="auth-card">
+      <h2 class="h2" style="text-align:center;">Create Account</h2>
+      <p class="p" style="text-align:center;">Start managing your stock today</p>
+
+      <form id="registerForm" style="margin-top:28px;">
+        <div style="margin-bottom:18px;">
+          <label>Business Name</label>
+          <input class="auth-input" type="text" id="businessName" placeholder="My Store" required />
+        </div>
+
+        <div style="margin-bottom:18px;">
+          <label>Email</label>
+          <input class="auth-input" type="email" id="registerEmail" placeholder="you@business.com" required />
+        </div>
+
+        <div style="margin-bottom:24px;">
+          <label>Password</label>
+          <input class="auth-input" type="password" id="registerPassword" placeholder="Create a password" required />
+        </div>
+
+        <button class="btn btn--primary w-100" type="submit">
+          Create Account
+        </button>
+      </form>
+
+      <p style="text-align:center; margin-top:18px;">
+        Already have an account?
+        <a href="login.html" style="color:var(--primary); font-weight:700;">
+          Sign in
+        </a>
+      </p>
+    </div>
+  </div>
+</main>
+
+
+  <script>
+  document.getElementById("registerForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const business_name = document.getElementById("businessName").value;
+    const email = document.getElementById("registerEmail").value;
+    const password = document.getElementById("registerPassword").value;
+
+    try {
+      const res = await fetch("http://localhost:5000/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ business_name, email, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message);
+        return;
+      }
+
+      alert("Registration successful. Please login.");
+      window.location.href = "login.html";
+
+    } catch (error) {
+      alert("Server error. Try again.");
+    }
+  });
+</script>
+
+
+</body>
+</html>

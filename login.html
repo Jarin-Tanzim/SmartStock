@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login | SmartStock</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<!-- NAV -->
+  <header class="site-header" data-header>
+    <nav class="nav" aria-label="Primary">
+      <div class="container nav__inner">
+        <a class="brand" href="index.html" aria-label="SmartStock home">
+          <img class="brand__logo" src="images/logo.png" alt="SmartStock" />
+        </a>
+
+        <div class="nav__links" data-nav-links>
+          <a class="nav__link is-active" href="index.html">Home</a>
+          <a class="nav__link" href="#features">Features</a>
+          <a class="nav__link" href="#pricing">Pricing</a>
+          <a class="nav__link" href="#testimonials">Testimonials</a>
+        </div>
+
+        <div class="nav__actions">
+          <a class="btn btn--ghost" href="login.html">Sign In</a>
+          <a class="btn btn--primary" href="login.html?register=true">Get Started Free</a>
+
+          <button class="icon-btn nav__toggle"
+                  type="button"
+                  aria-label="Open menu"
+                  aria-expanded="false"
+                  aria-controls="mobileMenu"
+                  data-nav-toggle>
+            <i class="fa-solid fa-bars" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </nav>
+<body>
+  <main class="section section--tight">
+  <div class="container" style="max-width: 460px;">
+    <div class="auth-card">
+      <h2 class="h2" style="text-align:center;">Welcome Back</h2>
+      <p class="p" style="text-align:center;">Sign in to manage your inventory</p>
+
+      <form id="loginForm" style="margin-top:28px;">
+        <div style="margin-bottom:18px;">
+          <label>Email</label>
+          <input class="auth-input" type="email" id="loginEmail" placeholder="you@business.com" required />
+        </div>
+
+        <div style="margin-bottom:24px;">
+          <label>Password</label>
+          <input class="auth-input" type="password" id="loginPassword" placeholder="••••••••" required />
+        </div>
+
+        <button class="btn btn--primary w-100" type="submit">
+          Sign In
+        </button>
+      </form>
+
+      <p style="text-align:center; margin-top:18px;">
+        Don’t have an account?
+        <a href="register.html" style="color:var(--primary); font-weight:700;">
+          Create one
+        </a>
+      </p>
+    </div>
+  </div>
+</main>
+
+
+  <script>
+  document.getElementById("loginForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+
+    try {
+      const res = await fetch("http://localhost:5000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message);
+        return;
+      }
+
+     
+      localStorage.setItem("smartstock_token", data.token);
+      localStorage.setItem("smartstock_user", JSON.stringify(data.user));
+
+      window.location.href = "dashboard.html";
+
+    } catch (error) {
+      alert("Server error. Try again.");
+    }
+  });
+</script>
+
+</body>
+</html>

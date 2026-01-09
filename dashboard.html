@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard | SmartStock</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+
+<script>
+  const token = localStorage.getItem("smartstock_token");
+  const user = localStorage.getItem("smartstock_user");
+
+  if (!token || !user) {
+    window.location.href = "login.html";
+  }
+</script>
+
+
+<header class="site-header">
+  <nav class="nav">
+    <div class="container nav__inner">
+      <strong>SmartStock</strong>
+
+      <div class="nav__links">
+        <a class="nav__link is-active" href="dashboard.html">Dashboard</a>
+        <a class="nav__link" href="products.html">Products</a>
+        <a class="nav__link" href="add-product.html">Add Product</a>
+        <a class="nav__link" href="billing.html">Billing</a>
+      </div>
+
+      <button class="btn btn--ghost" id="logoutBtn">Logout</button>
+    </div>
+  </nav>
+</header>
+
+
+<main class="section">
+  <div class="container">
+
+    <h2 class="h2">Dashboard</h2>
+    <p class="p">Overview of your inventory</p>
+
+    
+    <div class="mock" style="margin-top:32px;">
+      <div class="mock__grid">
+
+       
+        <article class="metric">
+          <div class="metric__icon">
+            <i class="fa-solid fa-boxes-stacked"></i>
+          </div>
+          <div class="metric__body">
+            <div class="metric__value" id="totalProducts">0</div>
+            <div class="metric__label">Total Products</div>
+          </div>
+        </article>
+
+       
+        <article class="metric">
+          <div class="metric__icon">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+          <div class="metric__body">
+            <div class="metric__value">$0</div>
+            <div class="metric__label">Monthly Sales</div>
+          </div>
+        </article>
+
+       
+        <article class="metric metric--warn">
+          <div class="metric__icon">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div class="metric__body">
+            <div class="metric__value" id="lowStock">0</div>
+            <div class="metric__label">Low Stock Items</div>
+          </div>
+        </article>
+
+        
+        <div class="chart">
+          <div class="chart__head">
+            <div>
+              <div class="chart__title">Sales Trend</div>
+              <div class="chart__sub">Last 7 days</div>
+            </div>
+            <span class="chip">Auto-updated</span>
+          </div>
+
+          <div class="chart__bars">
+            <span style="--h: 20%"></span>
+            <span style="--h: 35%"></span>
+            <span style="--h: 40%"></span>
+            <span style="--h: 55%"></span>
+            <span style="--h: 30%"></span>
+            <span style="--h: 60%"></span>
+            <span style="--h: 45%"></span>
+          </div>
+        </div>
+
+      
+        <div class="list">
+          <div class="list__head">
+            <div class="list__title">Alerts</div>
+            <a class="list__link" href="products.html">View all</a>
+          </div>
+
+          <ul class="list__items" id="alertsList">
+            <li>
+              <span class="dot dot--ok"></span>
+              <span>Inventory system active</span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+
+    <div style="margin-top:40px; text-align:center;">
+      <a href="add-product.html" class="btn btn--primary btn--lg">
+        + Add Product
+      </a>
+    </div>
+
+  </div>
+</main>
+
+
+<script>
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.removeItem("smartstock_token");
+    localStorage.removeItem("smartstock_user");
+    window.location.href = "login.html";
+  });
+</script>
+
+
+<script>
+  fetch("http://localhost:5000/api/dashboard", {
+    headers: {
+      "Authorization": "Bearer " + token
+    }
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Dashboard fetch failed");
+    return res.json();
+  })
+  .then(data => {
+    document.getElementById("totalProducts").textContent = data.totalProducts;
+    document.getElementById("lowStock").textContent = data.lowStock;
+
+    const alerts = document.getElementById("alertsList");
+    alerts.innerHTML = "";
+
+    if (data.lowStock > 0) {
+      alerts.innerHTML += `
+        <li>
+          <span class="dot dot--warn"></span>
+          <span>${data.lowStock} product(s) low in stock</span>
+        </li>
+      `;
+    } else {
+      alerts.innerHTML += `
+        <li>
+          <span class="dot dot--ok"></span>
+          <span>No low-stock alerts</span>
+        </li>
+      `;
+    }
+  })
+  .catch(err => {
+    console.error(err);
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Add Product | SmartStock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+ 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
+
+ 
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+
+<script>
+  const token = localStorage.getItem("smartstock_token");
+  if (!token) {
+    window.location.href = "login.html";
+  }
+</script>
+
+
+<header class="site-header">
+  <nav class="nav">
+    <div class="container nav__inner">
+      <strong>SmartStock</strong>
+
+      <div class="nav__links">
+        <a class="nav__link" href="dashboard.html">Dashboard</a>
+        <a class="nav__link" href="products.html">Products</a>
+        <a class="nav__link is-active" href="add-product.html">Add Product</a>
+        <a class="nav__link" href="billing.html">Billing</a>
+      </div>
+
+      <button class="btn btn--ghost" id="logoutBtn">Logout</button>
+    </div>
+  </nav>
+</header>
+
+
+<main class="section section--tight">
+  <div class="container" style="max-width:600px;">
+
+    <div class="auth-card">
+      <h2 class="h2" style="text-align:center;">Add Product</h2>
+      <p class="p" style="text-align:center;">
+        Create a new inventory item
+      </p>
+
+      <form id="productForm" style="margin-top:28px;">
+
+        <div style="margin-bottom:18px;">
+          <label>Product Name</label>
+          <input class="auth-input" type="text" id="name" required />
+        </div>
+
+        
+
+        <div style="margin-bottom:18px;">
+          <label>Price ($)</label>
+          <input class="auth-input" type="number" id="price" step="0.01" min="0" required />
+        </div>
+
+        <div style="margin-bottom:18px;">
+          <label>Quantity</label>
+          <input class="auth-input" type="number" id="quantity" min="0" required />
+        </div>
+
+        <div style="margin-bottom:24px;">
+          <label>Low Stock Limit</label>
+          <input class="auth-input" type="number" id="low_stock_limit" min="0" value="5" />
+        </div>
+
+        <button class="btn btn--primary w-100" type="submit">
+          Save Product
+        </button>
+      </form>
+    </div>
+
+  </div>
+</main>
+
+
+<script>
+  document.getElementById("logoutBtn").onclick = () => {
+    localStorage.removeItem("smartstock_token");
+    localStorage.removeItem("smartstock_user");
+    window.location.href = "login.html";
+  };
+</script>
+
+
+<script>
+  document.getElementById("productForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const payload = {
+      name: document.getElementById("name").value.trim(),
+      price: parseFloat(document.getElementById("price").value),
+      quantity: parseInt(document.getElementById("quantity").value, 10),
+      low_stock_limit: parseInt(document.getElementById("low_stock_limit").value, 10)
+    };
+
+    try {
+      const res = await fetch("http://localhost:5000/api/products", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Failed to add product");
+        return;
+      }
+
+      window.location.href = "products.html";
+
+    } catch (err) {
+      alert("Server error. Please try again.");
+      console.error(err);
+    }
+  });
+</script>
+
+</body>
+</html>

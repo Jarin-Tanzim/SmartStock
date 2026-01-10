@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sales Report | SmartStock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+<script>
+  const token = localStorage.getItem("smartstock_token");
+  if (!token) {
+    window.location.href = "login.html";
+  }
+</script>
+
+<!-- HEADER -->
+<header class="site-header">
+  <nav class="nav">
+    <div class="container nav__inner">
+      <strong>SmartStock</strong>
+
+      <div class="nav__links">
+        <a class="nav__link" href="dashboard.html">Dashboard</a>
+        <a class="nav__link" href="products.html">Products</a>
+        <a class="nav__link" href="add-product.html">Add Product</a>
+        <a class="nav__link is-active" href="sales.html">Sales Report</a>
+      </div>
+
+      <button class="btn btn--ghost" id="logoutBtn">Logout</button>
+    </div>
+  </nav>
+</header>
+
+<!-- MAIN -->
+<main class="section">
+  <div class="container">
+
+    <h2 class="h2">Sales Report</h2>
+    <p class="p">Detailed sales and revenue breakdown</p>
+
+    <!-- FILTER -->
+    <div style="margin-top:24px; display:flex; gap:16px; align-items:end; flex-wrap:wrap;">
+  <div style="max-width:260px;">
+    <label style="font-weight:700;">Filter by month</label>
+    <input type="month" id="monthFilter" class="auth-input">
+  </div>
+
+  <button class="btn btn--outline" id="exportCsvBtn">
+    <i class="fa-solid fa-file-csv"></i>
+    Export CSV
+  </button>
+</div>
+
+
+    <!-- SUMMARY CARDS -->
+    <div class="mock" style="margin-top:32px;">
+      <div class="mock__grid">
+
+        <article class="metric">
+          <div class="metric__icon">
+            <i class="fa-solid fa-dollar-sign"></i>
+          </div>
+          <div>
+            <div class="metric__value" id="totalRevenue">$0.00</div>
+            <div class="metric__label">Total Sales</div>
+          </div>
+        </article>
+
+        <article class="metric">
+          <div class="metric__icon">
+            <i class="fa-solid fa-box"></i>
+          </div>
+          <div>
+            <div class="metric__value" id="totalUnits">0</div>
+            <div class="metric__label">Units Sold</div>
+          </div>
+        </article>
+
+        <article class="metric">
+          <div class="metric__icon">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+          <div>
+            <div class="metric__value" id="totalTransactions">0</div>
+            <div class="metric__label">Transactions</div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS TABLE -->
+    <div style="margin-top:40px; background:#fff; border:1px solid var(--gray-200); border-radius:18px; overflow:hidden;">
+      <table style="width:100%; border-collapse:collapse;">
+        <thead style="background:var(--gray-050);">
+          <tr>
+            <th style="padding:14px;">Date & Time</th>
+            <th style="padding:14px;">Product</th>
+            <th style="padding:14px; text-align:center;">Qty</th>
+            <th style="padding:14px; text-align:right;">Unit Price</th>
+            <th style="padding:14px; text-align:right;">Total</th>
+          </tr>
+        </thead>
+
+        <tbody id="salesTable">
+          <tr>
+            <td colspan="5" style="padding:32px; text-align:center; color:var(--gray-500); font-weight:600;">
+              Loading sales…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</main>
+
+<!-- LOGOUT -->
+<script>
+  document.getElementById("logoutBtn").onclick = () => {
+    localStorage.removeItem("smartstock_token");
+    localStorage.removeItem("smartstock_user");
+    window.location.href = "login.html";
+  };
+</script>
+
+<!-- SALES REPORT LOGIC -->
+<script>
+  const monthInput = document.getElementById("monthFilter");
+
+  function loadSales(month = "") {
+    const query = month ? `?month=${month}` : "";
+
+    // Summary
+    fetch(`http://localhost:5000/api/billing/summary${query}`, {
+      headers: { Authorization: "Bearer " + token }
+    })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("totalRevenue").textContent =
+        "$" + Number(data.totalRevenue).toFixed(2);
+      document.getElementById("totalUnits").textContent = data.totalUnitsSold;
+      document.getElementById("totalTransactions").textContent = data.totalTransactions;
+    });
+
+    // Table
+    fetch(`http://localhost:5000/api/billing/transactions${query}`, {
+      headers: { Authorization: "Bearer " + token }
+    })
+    .then(res => res.json())
+    .then(rows => {
+      const table = document.getElementById("salesTable");
+      table.innerHTML = "";
+
+      if (rows.length === 0) {
+        table.innerHTML = `
+          <tr>
+            <td colspan="5" style="padding:32px; text-align:center; color:var(--gray-500); font-weight:600;">
+              No sales found for selected period.
+            </td>
+          </tr>`;
+        return;
+      }
+
+      rows.forEach(r => {
+        const date = new Date(r.created_at).toLocaleString();
+        table.innerHTML += `
+          <tr style="border-top:1px solid var(--gray-200);">
+            <td style="padding:14px;">${date}</td>
+            <td style="padding:14px; font-weight:700;">${r.product_name}</td>
+            <td style="padding:14px; text-align:center;">${r.quantity}</td>
+            <td style="padding:14px; text-align:right;">$${Number(r.unit_price).toFixed(2)}</td>
+            <td style="padding:14px; text-align:right; font-weight:800;">
+              $${Number(r.total_amount).toFixed(2)}
+            </td>
+          </tr>
+        `;
+      });
+    });
+  }
+
+  // Initial load (all time)
+  loadSales();
+
+  // Reload on month change
+  monthInput.addEventListener("change", () => {
+    loadSales(monthInput.value);
+  });
+</script>
+<script>
+  const exportBtn = document.getElementById("exportCsvBtn");
+
+  exportBtn.addEventListener("click", () => {
+    const month = monthInput.value;
+    const query = month ? `?month=${month}` : "";
+
+    fetch(`http://localhost:5000/api/billing/transactions${query}`, {
+      headers: { Authorization: "Bearer " + token }
+    })
+    .then(res => res.json())
+    .then(rows => {
+      if (!rows.length) {
+        alert("No sales data to export.");
+        return;
+      }
+
+      // CSV header
+      let csv = "Date,Product,Quantity,Unit Price,Total Amount\n";
+
+      rows.forEach(r => {
+        const date = new Date(r.created_at).toLocaleString();
+        const product = `"${r.product_name.replace(/"/g, '""')}"`;
+
+        csv += `${date},${product},${r.quantity},${r.unit_price},${r.total_amount}\n`;
+      });
+
+      // Create file
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = month
+        ? `sales-report-${month}.csv`
+        : "sales-report-all-time.csv";
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    });
+  });
+</script>
+
+</body>
+</html>

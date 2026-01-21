@@ -1,5 +1,3 @@
-// server.js (FULL REWRITE - includes Sales Report month filter + fixed sales + billing endpoints)
-
 const express = require("express");
 const mysql = require("mysql2");
 const bcrypt = require("bcrypt");

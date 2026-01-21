@@ -13,53 +13,52 @@
   <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
+  <!-- Chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <!-- CSS -->
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
-
+<!-- ================= AUTH GUARD ================= -->
 <script>
   const token = localStorage.getItem("smartstock_token");
   const user = localStorage.getItem("smartstock_user");
-
-  if (!token || !user) {
-    window.location.href = "login.html";
-  }
+  if (!token || !user) window.location.href = "login.html";
 </script>
 
-
+<!-- ================= NAV ================= -->
 <header class="site-header">
   <nav class="nav">
     <div class="container nav__inner">
       <strong>SmartStock</strong>
 
       <div class="nav__links">
-        <a class="nav__link is-active" href="dashboard.html">Dashboard</a>
-        <a class="nav__link" href="products.html">Products</a>
-        <a class="nav__link" href="add-product.html">Add Product</a>
-        <a class="nav__link" href="sales.html">Sales Report</a>
-        <a class="nav__link" href="analytics.html">Analytics</a>
-      </div>
+  <a class="nav__link is-active" href="dashboard.html">Dashboard</a>
+  <a class="nav__link" href="products.html">Products</a>
+  <a class="nav__link" href="add-product.html">Add Product</a>
+  <a class="nav__link" href="sales.html">Sales Report</a>
+  <a class="nav__link" href="analytics.html">Analytics</a>
+</div>
 
       <button class="btn btn--ghost" id="logoutBtn">Logout</button>
     </div>
   </nav>
 </header>
 
-
+<!-- ================= MAIN ================= -->
 <main class="section">
   <div class="container">
 
     <h2 class="h2">Dashboard</h2>
-    <p class="p">Overview of your inventory</p>
+    <p class="p">Overview of your inventory & sales</p>
 
-    
+    <!-- ================= METRICS ================= -->
     <div class="mock" style="margin-top:32px;">
       <div class="mock__grid">
 
-       
         <article class="metric">
           <div class="metric__icon">
             <i class="fa-solid fa-boxes-stacked"></i>
@@ -70,18 +69,16 @@
           </div>
         </article>
 
-       
         <article class="metric">
           <div class="metric__icon">
             <i class="fa-solid fa-chart-line"></i>
           </div>
           <div class="metric__body">
-            <div class="metric__value">$0</div>
+            <div class="metric__value">$<span id="monthlySales">0</span></div>
             <div class="metric__label">Monthly Sales</div>
           </div>
         </article>
 
-       
         <article class="metric metric--warn">
           <div class="metric__icon">
             <i class="fa-solid fa-triangle-exclamation"></i>
@@ -92,46 +89,35 @@
           </div>
         </article>
 
-        
+        <!-- ================= SALES TREND ================= -->
         <div class="chart">
           <div class="chart__head">
             <div>
               <div class="chart__title">Sales Trend</div>
               <div class="chart__sub">Last 7 days</div>
             </div>
-            <span class="chip">Auto-updated</span>
+            <span class="chip">LIVE</span>
           </div>
 
-          <div class="chart__bars">
-            <span style="--h: 20%"></span>
-            <span style="--h: 35%"></span>
-            <span style="--h: 40%"></span>
-            <span style="--h: 55%"></span>
-            <span style="--h: 30%"></span>
-            <span style="--h: 60%"></span>
-            <span style="--h: 45%"></span>
+          <div style="height:180px;">
+            <canvas id="salesChart"></canvas>
           </div>
         </div>
 
-      
+        <!-- ================= ALERTS ================= -->
         <div class="list">
           <div class="list__head">
             <div class="list__title">Alerts</div>
             <a class="list__link" href="products.html">View all</a>
           </div>
 
-          <ul class="list__items" id="alertsList">
-            <li>
-              <span class="dot dot--ok"></span>
-              <span>Inventory system active</span>
-            </li>
-          </ul>
+          <ul class="list__items" id="alertsList"></ul>
         </div>
 
       </div>
     </div>
 
-
+    <!-- ================= CTA ================= -->
     <div style="margin-top:40px; text-align:center;">
       <a href="add-product.html" class="btn btn--primary btn--lg">
         + Add Product
@@ -141,7 +127,7 @@
   </div>
 </main>
 
-
+<!-- ================= LOGOUT ================= -->
 <script>
   document.getElementById("logoutBtn").addEventListener("click", () => {
     localStorage.removeItem("smartstock_token");
@@ -150,46 +136,77 @@
   });
 </script>
 
-
+<!-- ================= DASHBOARD DATA ================= -->
 <script>
   fetch("http://localhost:5000/api/dashboard", {
-    headers: {
-      "Authorization": "Bearer " + token
-    }
+    headers: { Authorization: "Bearer " + token }
   })
-  .then(res => {
-    if (!res.ok) throw new Error("Dashboard fetch failed");
-    return res.json();
-  })
+  .then(res => res.json())
   .then(data => {
+
+    // Metrics
     document.getElementById("totalProducts").textContent = data.totalProducts;
     document.getElementById("lowStock").textContent = data.lowStock;
+    document.getElementById("monthlySales").textContent =
+      Number(data.monthlySales).toFixed(2);
 
+    // Alerts
     const alerts = document.getElementById("alertsList");
     alerts.innerHTML = "";
 
-    if (data.lowStock > 0) {
-      alerts.innerHTML += `
-        <li>
-          <span class="dot dot--warn"></span>
-          <span>${data.lowStock} product(s) low in stock</span>
-        </li>
-      `;
-    } else {
-      alerts.innerHTML += `
+    if (data.lowStockProducts.length === 0) {
+      alerts.innerHTML = `
         <li>
           <span class="dot dot--ok"></span>
           <span>No low-stock alerts</span>
         </li>
       `;
+    } else {
+      data.lowStockProducts.forEach(p => {
+        alerts.innerHTML += `
+          <li>
+            <span class="dot dot--warn"></span>
+            <span>${p.name} — ${p.quantity}/${p.low_stock_limit}</span>
+          </li>
+        `;
+      });
     }
+
+    // 7-Day Bar Chart
+    const ctx = document.getElementById("salesChart").getContext("2d");
+
+    const labels = data.salesTrend7Days.map(d =>
+      new Date(d.day).toLocaleDateString("en-US", { weekday: "short" })
+    );
+    const values = data.salesTrend7Days.map(d => d.total);
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+    gradient.addColorStop(0, "#4f9cf9");
+    gradient.addColorStop(1, "#2563eb");
+
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: gradient,
+          borderRadius: 14,
+          barThickness: 26
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false } },
+          y: { display: false, beginAtZero: true }
+        }
+      }
+    });
+
   })
-  .catch(err => {
-    console.error(err);
-  });
+  .catch(err => console.error("Dashboard load error:", err));
 </script>
 
 </body>
 </html>
-
-

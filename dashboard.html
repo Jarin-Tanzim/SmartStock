@@ -18,6 +18,40 @@
 
   <!-- CSS -->
   <link rel="stylesheet" href="style.css" />
+
+  <!-- AI Animation (UI ONLY) -->
+  <style>
+    /* ================= AI CARD ANIMATION ================= */
+
+    .ai-animate {
+      opacity: 0;
+      transform: translateY(24px) scale(0.98);
+      animation: aiReveal 700ms cubic-bezier(.2,.8,.2,1) forwards;
+      animation-delay: 300ms;
+    }
+
+    @keyframes aiReveal {
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Hover enhancement */
+    .ai-animate:hover {
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: 0 20px 40px rgba(31,95,166,0.25);
+    }
+
+    /* Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      .ai-animate {
+        animation: none;
+        opacity: 1;
+        transform: none;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -36,12 +70,12 @@
       <strong>SmartStock</strong>
 
       <div class="nav__links">
-  <a class="nav__link is-active" href="dashboard.html">Dashboard</a>
-  <a class="nav__link" href="products.html">Products</a>
-  <a class="nav__link" href="add-product.html">Add Product</a>
-  <a class="nav__link" href="sales.html">Sales Report</a>
-  <a class="nav__link" href="analytics.html">Analytics</a>
-</div>
+        <a class="nav__link is-active" href="dashboard.html">Dashboard</a>
+        <a class="nav__link" href="products.html">Products</a>
+        <a class="nav__link" href="add-product.html">Add Product</a>
+        <a class="nav__link" href="sales.html">Sales Report</a>
+        <a class="nav__link" href="analytics.html">Analytics</a>
+      </div>
 
       <button class="btn btn--ghost" id="logoutBtn">Logout</button>
     </div>
@@ -117,11 +151,27 @@
       </div>
     </div>
 
-    <!-- ================= CTA ================= -->
-    <div style="margin-top:40px; text-align:center;">
-      <a href="add-product.html" class="btn btn--primary btn--lg">
-        + Add Product
-      </a>
+    <!-- ================= AI DASHBOARD TEASER (ANIMATED) ================= -->
+    <div style="margin-top:48px;">
+      <div class="video-card ai-animate">
+        <div class="video-card__icon">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+
+        <div>
+          <div class="video-card__title">
+            AI Business Insights
+          </div>
+          <div class="video-card__sub">
+            Your AI assistant analyzes sales and inventory data to surface
+            risks, opportunities, and next actions.
+          </div>
+        </div>
+
+        <a href="analytics.html" class="btn btn--accent">
+          View AI Analysis →
+        </a>
+      </div>
     </div>
 
   </div>
@@ -144,13 +194,11 @@
   .then(res => res.json())
   .then(data => {
 
-    // Metrics
     document.getElementById("totalProducts").textContent = data.totalProducts;
     document.getElementById("lowStock").textContent = data.lowStock;
     document.getElementById("monthlySales").textContent =
       Number(data.monthlySales).toFixed(2);
 
-    // Alerts
     const alerts = document.getElementById("alertsList");
     alerts.innerHTML = "";
 
@@ -172,7 +220,6 @@
       });
     }
 
-    // 7-Day Bar Chart
     const ctx = document.getElementById("salesChart").getContext("2d");
 
     const labels = data.salesTrend7Days.map(d =>

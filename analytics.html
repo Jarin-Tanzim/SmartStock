@@ -16,6 +16,8 @@
 
   <!-- Page-specific CSS -->
   <style>
+    /* ================= PIE / ANALYTICS ================= */
+
     .pie-layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -56,6 +58,20 @@
       border-radius: 3px;
     }
 
+    /* ================= HEADER SPACING FIX ================= */
+
+    .analytics-header {
+      margin-bottom: 8px;
+    }
+
+    .analytics-card > .p.muted {
+      margin-top: 6px;
+      padding-left: 2px;
+      font-size: 13px;
+    }
+
+    /* ================= INSIGHT PANEL ================= */
+
     .insight-panel {
       background: #f9fafb;
       border-radius: 12px;
@@ -81,6 +97,107 @@
     .muted {
       color: #6b7280;
       font-size: 14px;
+    }
+
+    /* ================= AI FEATURE + ANIMATION ================= */
+
+    .ai-feature {
+      margin-top: 64px;
+      padding: 32px;
+      border-radius: 20px;
+      background: linear-gradient(
+        135deg,
+        rgba(31,95,166,0.08),
+        rgba(47,164,217,0.10)
+      );
+      border: 1px solid rgba(47,164,217,0.35);
+      box-shadow:
+        0 20px 40px rgba(31,95,166,0.18),
+        inset 0 0 0 1px rgba(255,255,255,0.4);
+      position: relative;
+      overflow: hidden;
+
+      opacity: 0;
+      transform: translateY(40px);
+      animation: aiReveal 900ms cubic-bezier(.2,.8,.2,1) forwards;
+      animation-delay: 400ms;
+    }
+
+    @keyframes aiReveal {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .ai-feature::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow: 0 0 0 rgba(47,164,217,0);
+      animation: aiGlow 1400ms ease-out forwards;
+      animation-delay: 600ms;
+      pointer-events: none;
+    }
+
+    @keyframes aiGlow {
+      0% { box-shadow: 0 0 0 rgba(47,164,217,0); }
+      50% { box-shadow: 0 0 30px rgba(47,164,217,0.35); }
+      100% { box-shadow: 0 0 0 rgba(47,164,217,0); }
+    }
+
+    .ai-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .ai-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .ai-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1f5fa6, #2fa4d9);
+      color: #fff;
+      font-size: 20px;
+      box-shadow: 0 10px 24px rgba(31,95,166,0.4);
+    }
+
+    .ai-subtitle {
+      font-size: 15px;
+      color: #475569;
+      margin-bottom: 18px;
+      max-width: 720px;
+    }
+
+    .ai-output {
+      margin-top: 24px;
+      padding: 24px;
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+      line-height: 1.6;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ai-feature {
+        animation: none;
+        opacity: 1;
+        transform: none;
+      }
+      .ai-feature::after {
+        animation: none;
+      }
     }
   </style>
 </head>
@@ -163,13 +280,11 @@
 
       <div class="pie-layout">
 
-        <!-- LEFT: PIE -->
         <div class="pie-wrapper">
           <div class="pie" id="pieChart"></div>
           <ul class="pie-legend" id="pieLegend"></ul>
         </div>
 
-        <!-- RIGHT: INSIGHT -->
         <div class="insight-panel">
           <h4>Key Insight</h4>
           <p class="muted">
@@ -197,23 +312,30 @@
       </div>
     </div>
 
-    <!-- AI BUSINESS INSIGHTS -->
-    <div class="analytics-card" style="margin-top:40px;">
-      <div class="analytics-header">
-        <h3>AI Business Insights</h3>
+    <!-- AI FEATURE -->
+    <section class="ai-feature">
+
+      <div class="ai-header">
+        <div class="ai-title">
+          <div class="ai-icon"><i class="fa-solid fa-robot"></i></div>
+          <h3>AI Business Insights</h3>
+        </div>
         <span class="chip">Powered by Groq AI</span>
       </div>
 
-      <p class="p">
-        AI-generated recommendations to improve future sales based on real business data.
+      <p class="ai-subtitle">
+        Your personal AI business assistant has analyzed your real sales,
+        inventory, and transaction data to highlight opportunities, risks,
+        and next actions.
       </p>
 
       <button class="btn btn--primary" id="aiBtn">
         Generate AI Insights
       </button>
 
-      <div id="aiOutput" style="margin-top:20px;"></div>
-    </div>
+      <div id="aiOutput" class="ai-output"></div>
+
+    </section>
 
   </div>
 </main>
@@ -226,7 +348,7 @@
   };
 </script>
 
-<!-- ANALYTICS LOGIC -->
+<!-- ANALYTICS LOGIC  -->
 <script>
 fetch("http://localhost:5000/api/billing/transactions", {
   headers: { Authorization: "Bearer " + token }

@@ -1,9 +1,9 @@
+require("dotenv").config();
 const express = require("express");
 const mysql = require("mysql2");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
-require("dotenv").config(); // Load .env variables
 
 const PORT = 5000;
 const JWT_SECRET = "smartstock_secret_key";
@@ -18,7 +18,7 @@ app.use(express.json());
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "6006",
+  password: "1234",
   database: "stock",
 });
 
@@ -35,27 +35,32 @@ db.connect((err) => {
 // ----------------------
 function authenticateToken(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).json({ message: "Authorization header missing" });
-  }
+  if (!authHeader) return res.status(401).json({ message: "Authorization header missing" });
 
   const token = authHeader.split(" ")[1];
-  if (!token) {
-    return res.status(401).json({ message: "Token missing" });
-  }
+  if (!token) return res.status(401).json({ message: "Token missing" });
 
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ message: "Invalid or expired token" });
-    }
+    if (err) return res.status(403).json({ message: "Invalid or expired token" });
     req.user = decoded; // { id, email }
     next();
   });
 }
 
+function toNumber(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function isNonEmptyString(v) {
+  return typeof v === "string" && v.trim().length > 0;
+}
+
 // ----------------------
 // AUTH ROUTES
 // ----------------------
+
+// REGISTER
 app.post("/api/register", async (req, res) => {
   const { business_name, email, password } = req.body;
 
@@ -66,8 +71,7 @@ app.post("/api/register", async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const sql =
-      "INSERT INTO users (business_name, email, password) VALUES (?, ?, ?)";
+    const sql = "INSERT INTO users (business_name, email, password) VALUES (?, ?, ?)";
     db.query(sql, [business_name, email, hashedPassword], (err) => {
       if (err) {
         if (err.code === "ER_DUP_ENTRY") {
@@ -85,6 +89,7 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
+// LOGIN
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -129,6 +134,8 @@ app.post("/api/login", (req, res) => {
 // ----------------------
 // PRODUCTS
 // ----------------------
+
+// GET PRODUCTS
 app.get("/api/products", authenticateToken, (req, res) => {
   const sql = `
     SELECT id, name, price, quantity, low_stock_limit, created_at
@@ -146,11 +153,16 @@ app.get("/api/products", authenticateToken, (req, res) => {
   });
 });
 
+// ADD PRODUCT
 app.post("/api/products", authenticateToken, (req, res) => {
   const { name, price, quantity, low_stock_limit } = req.body;
 
-  if (!name || price == null || quantity == null) {
-    return res.status(400).json({ message: "Missing required fields" });
+  const p = toNumber(price);
+  const q = toNumber(quantity);
+  const limit = low_stock_limit == null ? 5 : toNumber(low_stock_limit);
+
+  if (!isNonEmptyString(name) || p == null || q == null) {
+    return res.status(400).json({ message: "Missing or invalid fields" });
   }
 
   const sql = `
@@ -159,57 +171,205 @@ app.post("/api/products", authenticateToken, (req, res) => {
     VALUES (?, ?, ?, ?, ?)
   `;
 
+  db.query(sql, [req.user.id, name.trim(), p, q, limit ?? 5], (err) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Database error" });
+    }
+    res.status(201).json({ message: "Product added successfully" });
+  });
+});
+
+// UPDATE PRODUCT (Edit)
+app.put("/api/products/:id", authenticateToken, (req, res) => {
+  const productId = Number(req.params.id);
+  const { name, price, quantity, low_stock_limit } = req.body;
+
+  if (!Number.isFinite(productId)) {
+    return res.status(400).json({ message: "Invalid product id" });
+  }
+
+  const fields = [];
+  const params = [];
+
+  if (name != null) {
+    if (!isNonEmptyString(name)) return res.status(400).json({ message: "Invalid name" });
+    fields.push("name = ?");
+    params.push(name.trim());
+  }
+  if (price != null) {
+    const p = toNumber(price);
+    if (p == null || p < 0) return res.status(400).json({ message: "Invalid price" });
+    fields.push("price = ?");
+    params.push(p);
+  }
+  if (quantity != null) {
+    const q = toNumber(quantity);
+    if (q == null || q < 0) return res.status(400).json({ message: "Invalid quantity" });
+    fields.push("quantity = ?");
+    params.push(q);
+  }
+  if (low_stock_limit != null) {
+    const l = toNumber(low_stock_limit);
+    if (l == null || l < 0) return res.status(400).json({ message: "Invalid low_stock_limit" });
+    fields.push("low_stock_limit = ?");
+    params.push(l);
+  }
+
+  if (!fields.length) {
+    return res.status(400).json({ message: "No fields to update" });
+  }
+
+  const sql = `
+    UPDATE products
+    SET ${fields.join(", ")}
+    WHERE id = ? AND user_id = ?
+  `;
+
+  params.push(productId, req.user.id);
+
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Database error" });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    res.json({ message: "Product updated successfully" });
+  });
+});
+
+// DELETE PRODUCT
+app.delete("/api/products/:id", authenticateToken, (req, res) => {
+  const productId = Number(req.params.id);
+  if (!Number.isFinite(productId)) {
+    return res.status(400).json({ message: "Invalid product id" });
+  }
+
+  // First delete transactions for this product (optional but clean)
   db.query(
-    sql,
-    [req.user.id, name.trim(), price, quantity, low_stock_limit ?? 5],
+    "DELETE FROM transactions WHERE user_id = ? AND product_id = ?",
+    [req.user.id, productId],
     (err) => {
       if (err) {
         console.error(err);
         return res.status(500).json({ message: "Database error" });
       }
-      res.status(201).json({ message: "Product added successfully" });
+
+      db.query(
+        "DELETE FROM products WHERE id = ? AND user_id = ?",
+        [productId, req.user.id],
+        (err2, result) => {
+          if (err2) {
+            console.error(err2);
+            return res.status(500).json({ message: "Database error" });
+          }
+          if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Product not found" });
+          }
+          res.json({ message: "Product deleted successfully" });
+        }
+      );
     }
   );
 });
 
 // ----------------------
-// DASHBOARD
+// DASHBOARD (Enhanced)
 // ----------------------
 app.get("/api/dashboard", authenticateToken, (req, res) => {
-  const sql = `
-    SELECT 
+  const monthSql = `
+    SELECT COALESCE(SUM(total_amount), 0) AS monthlySales
+    FROM transactions
+    WHERE user_id = ?
+      AND type = 'SALE'
+      AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+  `;
+
+  const productsSql = `
+    SELECT
       COUNT(*) AS totalProducts,
       SUM(CASE WHEN quantity <= low_stock_limit THEN 1 ELSE 0 END) AS lowStock
     FROM products
     WHERE user_id = ?
   `;
 
-  db.query(sql, [req.user.id], (err, results) => {
+  const lowStockListSql = `
+    SELECT id, name, quantity, low_stock_limit
+    FROM products
+    WHERE user_id = ?
+      AND quantity <= low_stock_limit
+    ORDER BY (low_stock_limit - quantity) DESC, created_at DESC
+    LIMIT 5
+  `;
+
+  const trendSql = `
+    SELECT DATE(created_at) AS day, COALESCE(SUM(total_amount), 0) AS total
+    FROM transactions
+    WHERE user_id = ?
+      AND type = 'SALE'
+      AND created_at >= (NOW() - INTERVAL 6 DAY)
+    GROUP BY DATE(created_at)
+    ORDER BY day ASC
+  `;
+
+  db.query(productsSql, [req.user.id], (err, productsResults) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ message: "Database error" });
     }
 
-    res.json({
-      totalProducts: results[0].totalProducts || 0,
-      lowStock: results[0].lowStock || 0,
+    db.query(monthSql, [req.user.id], (err2, monthResults) => {
+      if (err2) {
+        console.error(err2);
+        return res.status(500).json({ message: "Database error" });
+      }
+
+      db.query(lowStockListSql, [req.user.id], (err3, lowList) => {
+        if (err3) {
+          console.error(err3);
+          return res.status(500).json({ message: "Database error" });
+        }
+
+        db.query(trendSql, [req.user.id], (err4, trendRows) => {
+          if (err4) {
+            console.error(err4);
+            return res.status(500).json({ message: "Database error" });
+          }
+
+          const row = productsResults[0] || {};
+          const monthlySales = Number((monthResults[0] || {}).monthlySales || 0);
+
+          res.json({
+            totalProducts: row.totalProducts || 0,
+            lowStock: row.lowStock || 0,
+            monthlySales,
+            lowStockProducts: lowList || [],
+            salesTrend7Days: trendRows || [],
+          });
+        });
+      });
     });
   });
 });
 
 // ----------------------
-// SALES
+// SALES (Stock OUT)
 // ----------------------
 app.post("/api/sales", authenticateToken, (req, res) => {
   const { product_id, quantity } = req.body;
 
-  if (!product_id || !quantity || quantity <= 0) {
+  const pid = toNumber(product_id);
+  const q = toNumber(quantity);
+
+  if (!pid || !q || q <= 0) {
     return res.status(400).json({ message: "Invalid sale data" });
   }
 
   db.query(
     "SELECT price, quantity FROM products WHERE id = ? AND user_id = ?",
-    [product_id, req.user.id],
+    [pid, req.user.id],
     (err, results) => {
       if (err) {
         console.error(err);
@@ -222,19 +382,19 @@ app.post("/api/sales", authenticateToken, (req, res) => {
 
       const product = results[0];
 
-      if (quantity > product.quantity) {
+      if (q > product.quantity) {
         return res.status(400).json({ message: "Not enough stock" });
       }
 
       const unitPrice = Number(product.price);
-      const totalAmount = Number((unitPrice * Number(quantity)).toFixed(2));
+      const totalAmount = Number((unitPrice * q).toFixed(2));
 
       db.query(
         "UPDATE products SET quantity = quantity - ? WHERE id = ? AND user_id = ?",
-        [quantity, product_id, req.user.id],
-        (err) => {
-          if (err) {
-            console.error(err);
+        [q, pid, req.user.id],
+        (err2) => {
+          if (err2) {
+            console.error(err2);
             return res.status(500).json({ message: "Stock update failed" });
           }
 
@@ -242,10 +402,10 @@ app.post("/api/sales", authenticateToken, (req, res) => {
             `INSERT INTO transactions
              (user_id, product_id, type, quantity, unit_price, total_amount)
              VALUES (?, ?, 'SALE', ?, ?, ?)`,
-            [req.user.id, product_id, quantity, unitPrice, totalAmount],
-            (err) => {
-              if (err) {
-                console.error(err);
+            [req.user.id, pid, q, unitPrice, totalAmount],
+            (err3) => {
+              if (err3) {
+                console.error(err3);
                 return res.status(500).json({ message: "Transaction insert failed" });
               }
 
@@ -263,8 +423,81 @@ app.post("/api/sales", authenticateToken, (req, res) => {
 });
 
 // ----------------------
-// BILLING / SALES REPORT
+// PURCHASES (Stock IN)
 // ----------------------
+app.post("/api/purchases", authenticateToken, (req, res) => {
+  const { product_id, quantity, unit_price } = req.body;
+
+  const pid = toNumber(product_id);
+  const q = toNumber(quantity);
+  const up = unit_price == null ? null : toNumber(unit_price);
+
+  if (!pid || !q || q <= 0) {
+    return res.status(400).json({ message: "Invalid purchase data" });
+  }
+
+  db.query(
+    "SELECT price FROM products WHERE id = ? AND user_id = ?",
+    [pid, req.user.id],
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ message: "Database error" });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      const defaultPrice = Number(results[0].price);
+      const unitPrice = up == null ? defaultPrice : Number(up);
+
+      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+        return res.status(400).json({ message: "Invalid unit_price" });
+      }
+
+      const totalAmount = Number((unitPrice * q).toFixed(2));
+
+      db.query(
+        "UPDATE products SET quantity = quantity + ? WHERE id = ? AND user_id = ?",
+        [q, pid, req.user.id],
+        (err2) => {
+          if (err2) {
+            console.error(err2);
+            return res.status(500).json({ message: "Stock update failed" });
+          }
+
+          db.query(
+            `INSERT INTO transactions
+             (user_id, product_id, type, quantity, unit_price, total_amount)
+             VALUES (?, ?, 'PURCHASE', ?, ?, ?)`,
+            [req.user.id, pid, q, unitPrice, totalAmount],
+            (err3) => {
+              if (err3) {
+                console.error(err3);
+                return res.status(500).json({ message: "Transaction insert failed" });
+              }
+
+              res.json({
+                message: "Purchase recorded successfully",
+                unit_price: unitPrice,
+                total_amount: totalAmount,
+              });
+            }
+          );
+        }
+      );
+    }
+  );
+});
+
+// ----------------------
+// SALES REPORT (BILLING) with MONTH FILTER
+// Supports: ?month=YYYY-MM
+// Example: /api/billing/summary?month=2026-01
+// ----------------------
+
+// Summary cards
 app.get("/api/billing/summary", authenticateToken, (req, res) => {
   const { month } = req.query;
 
@@ -300,6 +533,7 @@ app.get("/api/billing/summary", authenticateToken, (req, res) => {
   });
 });
 
+// Transactions list
 app.get("/api/billing/transactions", authenticateToken, (req, res) => {
   const { month } = req.query;
 
@@ -335,12 +569,33 @@ app.get("/api/billing/transactions", authenticateToken, (req, res) => {
     res.json(results);
   });
 });
+// ----------------------
+// ----------------------
+// ANALYTICS (Monthly Sales)
+// ----------------------
+app.get("/api/analytics/monthly-sales", authenticateToken, (req, res) => {
+  const sql = `
+    SELECT
+      DATE_FORMAT(MIN(created_at), '%b') AS month,
+      MONTH(created_at) AS monthIndex,
+      COALESCE(SUM(total_amount), 0) AS revenue
+    FROM transactions
+    WHERE user_id = ?
+      AND type = 'SALE'
+      AND YEAR(created_at) = YEAR(CURDATE())
+    GROUP BY MONTH(created_at)
+    ORDER BY monthIndex
+  `;
 
-// ----------------------
-// AI INSIGHTS MODULE
-// ----------------------
-const aiRoutes = require("./ai"); // Make sure ai.js is in same folder
-aiRoutes(app, db, authenticateToken);
+  db.query(sql, [req.user.id], (err, results) => {
+    if (err) {
+      console.error("Monthly analytics error:", err);
+      return res.status(500).json({ message: "Analytics query failed" });
+    }
+    res.json(results);
+  });
+});
+require("./ai")(app, db, authenticateToken);
 
 // ----------------------
 // START SERVER
@@ -348,3 +603,4 @@ aiRoutes(app, db, authenticateToken);
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
+

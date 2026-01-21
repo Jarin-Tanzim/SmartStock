@@ -3,6 +3,7 @@ const mysql = require("mysql2");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
+require("dotenv").config(); // Load .env variables
 
 const PORT = 5000;
 const JWT_SECRET = "smartstock_secret_key";
@@ -55,8 +56,6 @@ function authenticateToken(req, res, next) {
 // ----------------------
 // AUTH ROUTES
 // ----------------------
-
-// REGISTER
 app.post("/api/register", async (req, res) => {
   const { business_name, email, password } = req.body;
 
@@ -86,7 +85,6 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
-// LOGIN
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -131,8 +129,6 @@ app.post("/api/login", (req, res) => {
 // ----------------------
 // PRODUCTS
 // ----------------------
-
-// GET PRODUCTS
 app.get("/api/products", authenticateToken, (req, res) => {
   const sql = `
     SELECT id, name, price, quantity, low_stock_limit, created_at
@@ -150,7 +146,6 @@ app.get("/api/products", authenticateToken, (req, res) => {
   });
 });
 
-// ADD PRODUCT
 app.post("/api/products", authenticateToken, (req, res) => {
   const { name, price, quantity, low_stock_limit } = req.body;
 
@@ -203,7 +198,7 @@ app.get("/api/dashboard", authenticateToken, (req, res) => {
 });
 
 // ----------------------
-// SALES (FIXED FOR REPORTING)
+// SALES
 // ----------------------
 app.post("/api/sales", authenticateToken, (req, res) => {
   const { product_id, quantity } = req.body;
@@ -268,12 +263,8 @@ app.post("/api/sales", authenticateToken, (req, res) => {
 });
 
 // ----------------------
-// SALES REPORT (BILLING) with MONTH FILTER
-// Supports: ?month=YYYY-MM
-// Example: /api/billing/summary?month=2026-01
+// BILLING / SALES REPORT
 // ----------------------
-
-// Summary cards
 app.get("/api/billing/summary", authenticateToken, (req, res) => {
   const { month } = req.query;
 
@@ -309,7 +300,6 @@ app.get("/api/billing/summary", authenticateToken, (req, res) => {
   });
 });
 
-// Transactions list
 app.get("/api/billing/transactions", authenticateToken, (req, res) => {
   const { month } = req.query;
 
@@ -345,6 +335,12 @@ app.get("/api/billing/transactions", authenticateToken, (req, res) => {
     res.json(results);
   });
 });
+
+// ----------------------
+// AI INSIGHTS MODULE
+// ----------------------
+const aiRoutes = require("./ai"); // Make sure ai.js is in same folder
+aiRoutes(app, db, authenticateToken);
 
 // ----------------------
 // START SERVER

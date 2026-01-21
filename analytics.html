@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Analytics | SmartStock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Page-specific CSS -->
+  <style>
+    .pie-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-top: 24px;
+    }
+
+    .pie-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .pie {
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: conic-gradient(#e5e7eb 0deg, #e5e7eb 360deg);
+    }
+
+    .pie-legend {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .pie-legend li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    .insight-panel {
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+
+    .insight-panel h4 {
+      margin-bottom: 12px;
+    }
+
+    .insight-box {
+      margin-bottom: 16px;
+    }
+
+    .insight-box .label {
+      font-size: 13px;
+      color: #6b7280;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .muted {
+      color: #6b7280;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- AUTH GUARD -->
+<script>
+  const token = localStorage.getItem("smartstock_token");
+  if (!token) window.location.href = "login.html";
+</script>
+
+<!-- NAV -->
+<header class="site-header">
+  <nav class="nav">
+    <div class="container nav__inner">
+      <strong>SmartStock</strong>
+
+      <div class="nav__links">
+        <a class="nav__link" href="dashboard.html">Dashboard</a>
+        <a class="nav__link" href="products.html">Products</a>
+        <a class="nav__link is-active" href="analytics.html">Analytics</a>
+      </div>
+
+      <button class="btn btn--ghost" id="logoutBtn">Logout</button>
+    </div>
+  </nav>
+</header>
+
+<!-- MAIN -->
+<main class="section">
+  <div class="container">
+
+    <h2 class="h2">Analytics</h2>
+    <p class="p">
+      Visual analytics and AI-driven insights to support business decisions
+    </p>
+
+    <!-- KPI CARDS -->
+    <div class="mock" style="margin-top:32px;">
+      <div class="mock__grid">
+
+        <article class="metric">
+          <div class="metric__icon"><i class="fa-solid fa-dollar-sign"></i></div>
+          <div>
+            <div class="metric__value" id="totalRevenue">$0</div>
+            <div class="metric__label">Total Revenue</div>
+          </div>
+        </article>
+
+        <article class="metric">
+          <div class="metric__icon"><i class="fa-solid fa-box"></i></div>
+          <div>
+            <div class="metric__value" id="productCount">0</div>
+            <div class="metric__label">Products Sold</div>
+          </div>
+        </article>
+
+        <article class="metric">
+          <div class="metric__icon"><i class="fa-solid fa-star"></i></div>
+          <div>
+            <div class="metric__value" id="topProduct">—</div>
+            <div class="metric__label">Top Product</div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+
+    <!-- REVENUE BY PRODUCT -->
+    <div class="analytics-card" style="margin-top:32px;">
+      <div class="analytics-header">
+        <h3>Revenue by Product</h3>
+        <span class="chip">Distribution</span>
+      </div>
+
+      <p class="p muted">
+        Shows how total revenue is distributed across products.
+      </p>
+
+      <div class="pie-layout">
+
+        <!-- LEFT: PIE -->
+        <div class="pie-wrapper">
+          <div class="pie" id="pieChart"></div>
+          <ul class="pie-legend" id="pieLegend"></ul>
+        </div>
+
+        <!-- RIGHT: INSIGHT -->
+        <div class="insight-panel">
+          <h4>Key Insight</h4>
+          <p class="muted">
+            The product with the highest contribution to revenue is shown below.
+          </p>
+
+          <div class="insight-box">
+            <span class="label">Top Product</span>
+            <strong id="insightProduct">—</strong>
+          </div>
+
+          <div class="insight-box">
+            <span class="label">Revenue Share</span>
+            <strong id="insightShare">—</strong>
+          </div>
+
+          <div class="insight-box">
+            <span class="label">Business Action</span>
+            <p>
+              Prioritize inventory and marketing for this product to maximize revenue.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- AI BUSINESS INSIGHTS -->
+    <div class="analytics-card" style="margin-top:40px;">
+      <div class="analytics-header">
+        <h3>AI Business Insights</h3>
+        <span class="chip">Powered by Groq AI</span>
+      </div>
+
+      <p class="p">
+        AI-generated recommendations to improve future sales based on real business data.
+      </p>
+
+      <button class="btn btn--primary" id="aiBtn">
+        Generate AI Insights
+      </button>
+
+      <div id="aiOutput" style="margin-top:20px;"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- LOGOUT -->
+<script>
+  document.getElementById("logoutBtn").onclick = () => {
+    localStorage.clear();
+    window.location.href = "login.html";
+  };
+</script>
+
+<!-- ANALYTICS LOGIC -->
+<script>
+fetch("http://localhost:5000/api/billing/transactions", {
+  headers: { Authorization: "Bearer " + token }
+})
+.then(res => res.json())
+.then(rows => {
+  if (!rows.length) return;
+
+  const revenueMap = {};
+  let totalRevenue = 0;
+
+  rows.forEach(r => {
+    const name = r.product_name;
+    const amount = Number(r.total_amount);
+    revenueMap[name] = (revenueMap[name] || 0) + amount;
+    totalRevenue += amount;
+  });
+
+  const colors = [
+    "#3b82f6", "#22c55e", "#f97316",
+    "#a855f7", "#ef4444", "#14b8a6"
+  ];
+
+  let startDeg = 0;
+  let gradient = [];
+  let topProduct = "";
+  let topValue = 0;
+
+  const legend = document.getElementById("pieLegend");
+
+  Object.entries(revenueMap).forEach(([name, value], i) => {
+    if (value > topValue) {
+      topValue = value;
+      topProduct = name;
+    }
+
+    const percent = value / totalRevenue;
+    const deg = percent * 360;
+    const color = colors[i % colors.length];
+
+    gradient.push(`${color} ${startDeg}deg ${startDeg + deg}deg`);
+    startDeg += deg;
+
+    legend.innerHTML += `
+      <li>
+        <span class="legend-color" style="background:${color}"></span>
+        ${name} – ${(percent * 100).toFixed(1)}%
+      </li>
+    `;
+  });
+
+  document.getElementById("pieChart").style.background =
+    `conic-gradient(${gradient.join(",")})`;
+
+  document.getElementById("totalRevenue").textContent =
+    "$" + totalRevenue.toFixed(0);
+
+  document.getElementById("productCount").textContent =
+    Object.keys(revenueMap).length;
+
+  document.getElementById("topProduct").textContent =
+    topProduct;
+
+  document.getElementById("insightProduct").textContent =
+    topProduct;
+
+  document.getElementById("insightShare").textContent =
+    ((topValue / totalRevenue) * 100).toFixed(1) + "%";
+});
+
+// AI BUTTON
+document.getElementById("aiBtn").onclick = async () => {
+  const box = document.getElementById("aiOutput");
+  box.innerHTML = "<p>Analyzing business data...</p>";
+
+  const res = await fetch("http://localhost:5000/api/ai/insights", {
+    headers: { Authorization: "Bearer " + token }
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    box.innerHTML = `<pre>${data.raw}</pre>`;
+    return;
+  }
+
+  box.innerHTML = `
+    <h4>Summary</h4>
+    <p>${data.summary}</p>
+
+    <h4>Recommendations</h4>
+    <ul>
+      ${data.recommendations.map(r =>
+        `<li><strong>${r.title}</strong> (${r.priority}) – ${r.action}</li>`
+      ).join("")}
+    </ul>
+
+    <h4>Forecast</h4>
+    <p><strong>Next Month:</strong> ${data.forecast.next_month_revenue}</p>
+    <p>${data.forecast.logic}</p>
+  `;
+};
+</script>
+
+</body>
+</html>

@@ -5,20 +5,15 @@
   <title>Products | SmartStock</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
- 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
 
-  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-
- 
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-
 
 <script>
   const token = localStorage.getItem("smartstock_token");
@@ -26,7 +21,6 @@
     window.location.href = "login.html";
   }
 </script>
-
 
 <header class="site-header">
   <nav class="nav">
@@ -38,6 +32,7 @@
         <a class="nav__link is-active" href="products.html">Products</a>
         <a class="nav__link" href="add-product.html">Add Product</a>
         <a class="nav__link" href="sales.html">Sales Report</a>
+         <a class="nav__link" href="analytics.html">Analytics</a>
       </div>
 
       <button class="btn btn--ghost" id="logoutBtn">Logout</button>
@@ -45,11 +40,8 @@
   </nav>
 </header>
 
-
 <main class="section">
   <div class="container">
-
-    
     <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
       <div>
         <h2 class="h2">Products</h2>
@@ -61,7 +53,6 @@
       </a>
     </div>
 
-   
     <div style="margin-top:32px; background:#fff; border:1px solid var(--gray-200); border-radius:18px; overflow:hidden;">
       <table style="width:100%; border-collapse:collapse;">
         <thead style="background:var(--gray-050);">
@@ -70,7 +61,7 @@
             <th style="padding:14px; text-align:right;">Price</th>
             <th style="padding:14px; text-align:center;">Quantity</th>
             <th style="padding:14px; text-align:center;">Status</th>
-            <th style="padding:14px; text-align:center;">Action</th>
+            <th style="padding:14px; text-align:center;">Actions</th>
           </tr>
         </thead>
 
@@ -87,102 +78,201 @@
   </div>
 </main>
 
-
 <script>
   document.getElementById("logoutBtn").addEventListener("click", () => {
     localStorage.removeItem("smartstock_token");
     localStorage.removeItem("smartstock_user");
     window.location.href = "login.html";
   });
-</script>
 
-
-<script>
-fetch("http://localhost:5000/api/products", {
-  headers: {
-    "Authorization": "Bearer " + token
-  }
-})
-.then(res => {
-  if (!res.ok) throw new Error("Failed to fetch products");
-  return res.json();
-})
-.then(products => {
-  const table = document.getElementById("productsTable");
-  table.innerHTML = "";
-
-  if (products.length === 0) {
-    table.innerHTML = `
-      <tr>
-        <td colspan="5" style="padding:32px; text-align:center; color:var(--gray-500); font-weight:600;">
-          No products found. Add your first product to get started.
-        </td>
-      </tr>`;
-    return;
+  function api(url, options = {}) {
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        "Authorization": "Bearer " + token
+      }
+    });
   }
 
-  products.forEach(p => {
-    const isLow = p.quantity <= p.low_stock_limit;
-    const status = isLow
-      ? `<span style="color:#F59E0B; font-weight:700;">Low Stock</span>`
-      : `<span style="color:#22C55E; font-weight:700;">In Stock</span>`;
+  function loadProducts() {
+    api("http://localhost:5000/api/products")
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch products");
+        return res.json();
+      })
+      .then(products => {
+        const table = document.getElementById("productsTable");
+        table.innerHTML = "";
 
-    table.innerHTML += `
-      <tr style="border-top:1px solid var(--gray-200);">
-        <td style="padding:14px; font-weight:700;">${p.name}</td>
-        <td style="padding:14px; text-align:right;">$${Number(p.price).toFixed(2)}</td>
-        <td style="padding:14px; text-align:center;">${p.quantity}</td>
-        <td style="padding:14px; text-align:center;">${status}</td>
-        <td style="padding:14px; text-align:center;">
-          <button class="btn btn--ghost" onclick="sellProduct(${p.id})">
-            Sell
-          </button>
-        </td>
-      </tr>
-    `;
-  });
-})
-.catch(err => {
-  document.getElementById("productsTable").innerHTML = `
-    <tr>
-      <td colspan="5" style="padding:32px; text-align:center; color:#EF4444; font-weight:700;">
-        Error loading products
-      </td>
-    </tr>`;
-  console.error(err);
-});
-</script>
+        if (products.length === 0) {
+          table.innerHTML = `
+            <tr>
+              <td colspan="5" style="padding:32px; text-align:center; color:var(--gray-500); font-weight:600;">
+                No products found. Add your first product to get started.
+              </td>
+            </tr>`;
+          return;
+        }
 
+        products.forEach(p => {
+          const isLow = p.quantity <= p.low_stock_limit;
+          const status = isLow
+            ? `<span style="color:#F59E0B; font-weight:700;">Low Stock</span>`
+            : `<span style="color:#22C55E; font-weight:700;">In Stock</span>`;
 
-<script>
-function sellProduct(productId) {
-  const qty = prompt("Enter quantity sold:");
-
-  if (!qty || isNaN(qty) || qty <= 0) {
-    alert("Invalid quantity");
-    return;
+          table.innerHTML += `
+            <tr style="border-top:1px solid var(--gray-200);">
+              <td style="padding:14px; font-weight:700;">${p.name}</td>
+              <td style="padding:14px; text-align:right;">$${Number(p.price).toFixed(2)}</td>
+              <td style="padding:14px; text-align:center;">${p.quantity}</td>
+              <td style="padding:14px; text-align:center;">${status}</td>
+              <td style="padding:14px; text-align:center; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+                <button class="btn btn--ghost" onclick="sellProduct(${p.id})">Sell</button>
+                <button class="btn btn--outline" onclick="purchaseProduct(${p.id})">Purchase</button>
+                <button class="btn btn--ghost" onclick="editProduct(${p.id}, '${String(p.name).replace(/'/g, "\\'")}', ${Number(p.price)}, ${Number(p.quantity)}, ${Number(p.low_stock_limit)})">Edit</button>
+                <button class="btn btn--danger" onclick="deleteProduct(${p.id})">Delete</button>
+              </td>
+            </tr>
+          `;
+        });
+      })
+      .catch(err => {
+        document.getElementById("productsTable").innerHTML = `
+          <tr>
+            <td colspan="5" style="padding:32px; text-align:center; color:#EF4444; font-weight:700;">
+              Error loading products
+            </td>
+          </tr>`;
+        console.error(err);
+      });
   }
 
-  fetch("http://localhost:5000/api/sales", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + token
-    },
-    body: JSON.stringify({
-      product_id: productId,
-      quantity: parseInt(qty)
+  function sellProduct(productId) {
+    const qty = prompt("Enter quantity sold:");
+    if (!qty || isNaN(qty) || Number(qty) <= 0) {
+      alert("Invalid quantity");
+      return;
+    }
+
+    api("http://localhost:5000/api/sales", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        product_id: productId,
+        quantity: parseInt(qty, 10)
+      })
     })
-  })
-  .then(res => res.json())
-  .then(data => {
-    alert(data.message);
-    location.reload();
-  })
-  .catch(() => alert("Sale failed"));
-}
+    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok) {
+        alert(data.message || "Sale failed");
+        return;
+      }
+      alert(data.message);
+      loadProducts();
+    })
+    .catch(() => alert("Sale failed"));
+  }
+
+  function purchaseProduct(productId) {
+    const qty = prompt("Enter quantity purchased (stock in):");
+    if (!qty || isNaN(qty) || Number(qty) <= 0) {
+      alert("Invalid quantity");
+      return;
+    }
+
+    const unitPrice = prompt("Enter unit price (optional). Leave empty to use product price:");
+    const payload = {
+      product_id: productId,
+      quantity: parseInt(qty, 10)
+    };
+
+    if (unitPrice !== null && String(unitPrice).trim() !== "") {
+      if (isNaN(unitPrice) || Number(unitPrice) < 0) {
+        alert("Invalid unit price");
+        return;
+      }
+      payload.unit_price = Number(unitPrice);
+    }
+
+    api("http://localhost:5000/api/purchases", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok) {
+        alert(data.message || "Purchase failed");
+        return;
+      }
+      alert(data.message);
+      loadProducts();
+    })
+    .catch(() => alert("Purchase failed"));
+  }
+
+  function editProduct(id, oldName, oldPrice, oldQty, oldLimit) {
+    const name = prompt("Product name:", oldName);
+    if (name === null) return;
+    if (!String(name).trim()) return alert("Name cannot be empty");
+
+    const price = prompt("Price:", String(oldPrice));
+    if (price === null) return;
+    if (isNaN(price) || Number(price) < 0) return alert("Invalid price");
+
+    const qty = prompt("Quantity:", String(oldQty));
+    if (qty === null) return;
+    if (isNaN(qty) || Number(qty) < 0) return alert("Invalid quantity");
+
+    const limit = prompt("Low stock limit:", String(oldLimit));
+    if (limit === null) return;
+    if (isNaN(limit) || Number(limit) < 0) return alert("Invalid low stock limit");
+
+    api(`http://localhost:5000/api/products/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: String(name).trim(),
+        price: Number(price),
+        quantity: Number(qty),
+        low_stock_limit: Number(limit)
+      })
+    })
+    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok) {
+        alert(data.message || "Update failed");
+        return;
+      }
+      alert(data.message);
+      loadProducts();
+    })
+    .catch(() => alert("Update failed"));
+  }
+
+  function deleteProduct(id) {
+    if (!confirm("Are you sure you want to delete this product?")) return;
+
+    api(`http://localhost:5000/api/products/${id}`, {
+      method: "DELETE"
+    })
+    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok) {
+        alert(data.message || "Delete failed");
+        return;
+      }
+      alert(data.message);
+      loadProducts();
+    })
+    .catch(() => alert("Delete failed"));
+  }
+
+  // Initial load
+  loadProducts();
 </script>
 
 </body>
 </html>
-
